@@ -19,10 +19,10 @@ exports.authN = async(req,res,next) => {
           }
 
           try {
-               const resp = await jwt.verify(token, process.env.JWT_SECRET);
-               console.log("Token verifying response ", resp);
+               const payload = await jwt.verify(token, process.env.JWT_SECRET);
+               console.log("Token verifying response ", payload);
 
-               req.userExists = resp;
+               req.userExists = payload;
           } catch (error) {
                return res.status(401).json({
                     success:false,
