@@ -16,11 +16,12 @@ const userSchema = new mongoose.Schema({
           required:true,
           trim:true,
      },
-     password:{
-          type:String,
+     contactNumber:{
+          type:Number,
           required:true,
+          // maxLength:10,
      },
-     confirmPassword:{
+     password:{
           type:String,
           required:true,
      },
@@ -44,6 +45,12 @@ const userSchema = new mongoose.Schema({
           type:String,
           required:true,
      },
+     token:{
+          type:String,
+     },
+     resetPasswordExpires:{
+          type:Date,
+     },
      courseProgress:[
           {
                type:mongoose.Schema.Types.ObjectId,
@@ -51,6 +58,5 @@ const userSchema = new mongoose.Schema({
           }
      ]
 })
-
 
 module.exports = mongoose.model("User",userSchema);
