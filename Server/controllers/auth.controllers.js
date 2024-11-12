@@ -2,9 +2,9 @@ const User = require("../models/user.models");
 const OTP = require("../models/otp.models");
 const OTPGenerator = require("otp-generator");
 const bcrypt = require("bcrypt");
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const mailSender = require("../utils/mailSender.utils");
-require("dotenv").config()
+require("dotenv").config();
 
 exports.sendOTP = async (req, res) => {
 	try {
@@ -39,8 +39,8 @@ exports.sendOTP = async (req, res) => {
 			otpExists = await OTP.findOne({ otp: generatedOTP });
 		}
 
-		const otpPayload = { email, generatedOTP };
-		const response = await OTP.create(otpPayload);
+		// const otpPayload = { email, generatedOTP };
+		const response = await OTP.create({ email, generatedOTP });
 		console.log(response);
 		return res.status(200).json({
 			success: true,
@@ -128,12 +128,12 @@ exports.signUp = async (req, res) => {
 
 		const hashedPass = await bcrypt.hash(password, 10);
 
-          const profileDetails = await Profile.create({
-               gender:null,
-               dateOfBirth:null,
-               about:null,
-               contactNumber:null,
-          })
+		const profileDetails = await Profile.create({
+			gender: null,
+			dateOfBirth: null,
+			about: null,
+			contactNumber: null,
+		});
 		const response = await User.create({
 			firstName,
 			lastName,
@@ -141,17 +141,17 @@ exports.signUp = async (req, res) => {
 			password: hashedPass,
 			accountType,
 			contactNumber,
-               additionalDetails:profileDetails,
-               image:`https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`
+			additionalDetails: profileDetails,
+			image: `https://api.dicebear.com/5.x/initials/svg?seed=${firstName} ${lastName}`,
 		});
 
 		return res.status(300).json({
 			success: true,
 			msg: "Signed up successfully",
-               response,
+			response,
 		});
 	} catch (error) {
-          console.log(error)
+		console.log(error);
 		return res.status(500).json({
 			success: false,
 			msg: "User cannot be registered, Please try again later",
@@ -159,121 +159,132 @@ exports.signUp = async (req, res) => {
 	}
 };
 
-exports.login = async (req,res) => {
-     try {
-          //fetch accounttype,email,password for req body
-          //validate data
-          //check if user exists or not, if not then return res
-          //generate token, after password matching
-          //create cookie
-          //return res
+exports.login = async (req, res) => {
+	try {
+		//fetch accounttype,email,password for req body
+		//validate data
+		//check if user exists or not, if not then return res
+		//generate token, after password matching
+		//create cookie
+		//return res
 
-          const {email,password,accountType} = req.body;
+		const { email, password, accountType } = req.body;
 
-          if (!email || !password) {
+		if (!email || !password) {
 			return res.status(403).json({
 				success: false,
 				msg: "All fields are required",
 			});
 		}
 
-          const userExists = await User.findOne({email}).populate("additionalDetails");
-          if(!userExists){
-               return res.status(400).json({
+		const userExists = await User.findOne({ email }).populate(
+			"additionalDetails"
+		);
+		if (!userExists) {
+			return res.status(400).json({
 				success: false,
 				msg: "User does not exists",
 			});
-          }
+		}
 
-          if(await bcrypt.compare(password,userExists.password)){
-               const payload = {
-                    id:userExists._id,
-                    email:userExists.email,
-                    accountType:userExists.accountType,
-               }
-               let token = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn:"2h"});
+		if (await bcrypt.compare(password, userExists.password)) {
+			const payload = {
+				id: userExists._id,
+				email: userExists.email,
+				accountType: userExists.accountType,
+			};
+			let token = jwt.sign(payload, process.env.JWT_SECRET, {
+				expiresIn: "2h",
+			});
 
-               userExists.token = token;
-               userExists.password = undefined;
+			userExists.token = token;
+			userExists.password = undefined;
 
-               const options = {
-                    expires:new Date (Date.now() + 3*24*60*60*1000),
-                    httpOnly:true,
-               }
-               res.cookie("userCookie",token,options).status(200).json({
-                    success:true,
-                    token,
-                    userExists,
-                    msg:"User logged in successfully"
-               })
-          }else{
-               // password do not match
-               return res.status(400).json({
-                    success:false,
-                    msg:"Incorrect password"
-               })
-          }
-
-     } catch (error) {
-          return res.status(500).json({
-               success: false,
-               msg: "Error in login",
-          });
-     }
+			const options = {
+				expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+				httpOnly: true,
+			};
+			res.cookie("userCookie", token, options).status(200).json({
+				success: true,
+				token,
+				userExists,
+				msg: "User logged in successfully",
+			});
+		} else {
+			// password do not match
+			return res.status(400).json({
+				success: false,
+				msg: "Incorrect password",
+			});
+		}
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			msg: "Error in login",
+		});
+	}
 };
 
-exports.changePassword = async(req,res) => {
-     try {
-          //get data for req body
-          //get old, new and confirm password
-          //validation
-          //update in db
-          //send mail - password updated
-          //return res
-          const {email, newPassword, confirmPassword} = req.body;
+exports.changePassword = async (req, res) => {
+	try {
+		//get data for req body
+		//get old, new and confirm password
+		//validation
+		//update in db
+		//send mail - password updated
+		//return res
+		const { email, newPassword, confirmPassword } = req.body;
 
-          if(!email || !newPassword || !confirmPassword){
-               return res.status(403).json({
-                    success: false,
-                    msg: "All fields are required",
-               });
-          }
+		if (!email || !newPassword || !confirmPassword) {
+			return res.status(403).json({
+				success: false,
+				msg: "All fields are required",
+			});
+		}
 
-          if(newPassword !== confirmPassword){
-               return res.status(403).json({
-                    success: false,
-                    msg: "New Password and confirm password does not match",
-               });
-          }
+		if (newPassword !== confirmPassword) {
+			return res.status(403).json({
+				success: false,
+				msg: "New Password and confirm password does not match",
+			});
+		}
 
-          const userExists = await User.findOne({email});
-          if(!userExists){
-               return res.status(400).json({
-                    success: false,
-                    msg: "User does not exists",
-               });
-          }
-          
-          const response = await User.findOneAndUpdate({email:email},{password:newPassword});
+		const userExists = await User.findOne({ email });
+		if (!userExists) {
+			return res.status(400).json({
+				success: false,
+				msg: "User does not exists",
+			});
+		}
 
-          // mail sending
-          try {
-               const mailResp = await mailSender(userExists.email,"Study Notion" ,"Your Study Notion Password in Updated successfully");
-               console.log("Mail response for password updation : ",mailResp);
-          } catch (error) {
-               console.log("Error in sending mail for password update ", error.message);
-          }
+		const response = await User.findOneAndUpdate(
+			{ email: email },
+			{ password: newPassword }
+		);
 
-          return res.status(200).json({
-               success:true,
-               msg:"Password changed successfully",
-          });
+		// mail sending
+		try {
+			const mailResp = await mailSender(
+				userExists.email,
+				"Study Notion",
+				"Your Study Notion Password in Updated successfully"
+			);
+			console.log("Mail response for password updation : ", mailResp);
+		} catch (error) {
+			console.log(
+				"Error in sending mail for password update ",
+				error.message
+			);
+		}
 
-     } catch (error) {
-          return res.status(500).json({
-               success:true,
-               msg:"Error in Password update",
-          })
-     }
-
-}
+		return res.status(200).json({
+			success: true,
+			msg: "Password changed successfully",
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: true,
+			msg: "Error in Password update",
+		});
+	}
+};
