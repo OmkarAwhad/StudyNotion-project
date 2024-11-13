@@ -128,3 +128,38 @@ exports.getAllCourses = async (req, res) => {
 		});
 	}
 };
+
+// TODO : Maine banaya h
+exports.getCourseDetails = async (req, res) => {
+	try {
+		// courseId de rahe aur entire course detail mangta hai populate karke
+
+		const { courseId } = req.body;
+
+		if (!courseId) {
+			return res.status(402).json({
+				success: false,
+				msg: "Course ID not found",
+			});
+		}
+
+		const response = await Course.findById(courseId)
+			.populate("instructor")
+			.populate("courseContent")
+			.populate("ratingsAndReviews")
+			.populate("category")
+			.populate("studentsEnrolled")
+			.exec();
+
+		return res.status(200).json({
+			success: true,
+			msg: "Course details fetched successfully",
+			data: response,
+		});
+	} catch (error) {
+		return res.status(500).json({
+			success: false,
+			msg: "Error in fetching course details",
+		});
+	}
+};
