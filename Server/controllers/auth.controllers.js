@@ -225,6 +225,7 @@ exports.login = async (req, res) => {
 	}
 };
 
+// TODO : idk this is right or wrong
 exports.changePassword = async (req, res) => {
 	try {
 		//get data for req body

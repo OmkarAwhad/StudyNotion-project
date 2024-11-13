@@ -1,5 +1,5 @@
 const Course = require("../models/course.models");
-const Tag = require("../models/tags.models");
+const Category = require("../models/category.models");
 const User = require("../models/user.models");
 const Section = require("../models/section.models");
 require("dotenv").config();
@@ -11,10 +11,10 @@ exports.createCourse = async (req, res) => {
 		//fetch file
 		//validate data
 		//validate instructor
-		//validate tag
+		//validate Category
 		//upload image to cloudinary
 		//create entry in DB
-		//add entry in User and Tag DB too
+		//add entry in User and Category DB too
 		//return response
 
 		const {
@@ -22,7 +22,7 @@ exports.createCourse = async (req, res) => {
 			courseDescription,
 			whatYouWillLearn,
 			price,
-			tag,
+			category,
 		} = req.body;
 
 		const thumbNail = req.files.thumbNailImage;
@@ -32,7 +32,7 @@ exports.createCourse = async (req, res) => {
 			!courseDescription ||
 			!whatYouWillLearn ||
 			!price ||
-			!tag ||
+			!category ||
 			!thumbNail
 		) {
 			return res.status(402).json({
@@ -52,11 +52,11 @@ exports.createCourse = async (req, res) => {
 			});
 		}
 
-		const tagDetails = await Tag.findById({ tag });
-		if (!tagDetails) {
+		const categoryDetails = await Category.findById({ category });
+		if (!categoryDetails) {
 			return res.status(402).json({
 				success: false,
-				msg: "Tag not found",
+				msg: "Category not found",
 			});
 		}
 
@@ -72,7 +72,7 @@ exports.createCourse = async (req, res) => {
 			whatYouWillLearn,
 			price,
 			thumbNail: thumbNailImage.secure_url,
-			tag: tagDetails._id,
+			category: categoryDetails._id,
 		});
 
 		await User.findByIdAndUpdate(
@@ -81,8 +81,8 @@ exports.createCourse = async (req, res) => {
 			{ new: true }
 		);
 
-		await Tag.findByIdAndUpdate(
-			{ _id: tagDetails._id },
+		await Category.findByIdAndUpdate(
+			{ _id: categoryDetails._id },
 			{ $push: { course: response._id } },
 			{ new: true }
 		);
