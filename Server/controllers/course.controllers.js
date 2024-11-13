@@ -129,7 +129,6 @@ exports.getAllCourses = async (req, res) => {
 	}
 };
 
-// TODO : Maine banaya h
 exports.getCourseDetails = async (req, res) => {
 	try {
 		// courseId de rahe aur entire course detail mangta hai populate karke
@@ -143,13 +142,30 @@ exports.getCourseDetails = async (req, res) => {
 			});
 		}
 
-		const response = await Course.findById(courseId)
-			.populate("instructor")
-			.populate("courseContent")
+		const response = await Course.find({_id:courseId})
+			.populate({
+				path:"instructor",
+				populate:{
+					path:"additionalDetails",
+				}
+			})
+			.populate({
+				path:"courseContent",
+				populate:{
+					path:"subSection",
+				}
+			})
 			.populate("ratingsAndReviews")
 			.populate("category")
 			.populate("studentsEnrolled")
 			.exec();
+
+		if (!response) {
+			return res.status(402).json({
+				success: false,
+				msg: `Course not found with id ${courseId}`,
+			});
+		}
 
 		return res.status(200).json({
 			success: true,
