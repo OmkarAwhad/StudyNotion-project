@@ -58,88 +58,180 @@ exports.createSubSection = async (req, res) => {
 	}
 };
 
-// TODO : idk this is right or wrong
 exports.updateSubSection = async (req, res) => {
 	try {
-		//fetch data
-		//validate
-		//update data in Section model
-		//return response
-		const { title, timeDuration, description, subSectionId } = req.body;
+		const { sectionId, subSectionId, title, description } = req.body;
+		const subSection = await SubSection.findById(subSectionId);
 
-		const video = req.files.videoFile;
-
-		if (
-			!title ||
-			!subSectionId ||
-			!timeDuration ||
-			!description ||
-			!video
-		) {
-			return res.status(402).json({
+		if (!subSection) {
+			return res.status(404).json({
 				success: false,
-				msg: "All fields are required",
+				message: "SubSection not found",
 			});
 		}
 
-		const uploadDetails = await imageUploader(
-			video,
-			process.env.FOLDER_NAME
+		if (title !== undefined) {
+			subSection.title = title;
+		}
+
+		if (description !== undefined) {
+			subSection.description = description;
+		}
+		if (req.files && req.files.video !== undefined) {
+			const video = req.files.video;
+			const uploadDetails = await uploadImageToCloudinary(
+				video,
+				process.env.FOLDER_NAME
+			);
+			subSection.videoUrl = uploadDetails.secure_url;
+			subSection.timeDuration = `${uploadDetails.duration}`;
+		}
+
+		await subSection.save();
+
+		// find updated section and return it
+		const updatedSection = await Section.findById(sectionId).populate(
+			"subSection"
 		);
-		console.log("Upload details for videoUrl : ", uploadDetails);
 
-		const response = await SubSection.findByIdAndUpdate(subSectionId, {
-			title: title,
-			timeDuration: timeDuration,
-			description: description,
-			video: uploadDetails.secure_url,
-		});
+		console.log("updated section", updatedSection);
 
-		return res.status(200).json({
+		return res.json({
 			success: true,
-			data: response,
-			msg: "sub section updated successfully",
+			message: "Section updated successfully",
+			data: updatedSection,
 		});
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 		return res.status(500).json({
 			success: false,
-			msg: "Error in updating sub section",
+			message: "An error occurred while updating the section",
 		});
 	}
 };
 
-// TODO : idk this is right or wrong
-exports.deleteSection = async (req, res) => {
+exports.deleteSubSection = async (req, res) => {
 	try {
-		//fetch id
-		//validate
-		//delete
-		//return
+		const { subSectionId, sectionId } = req.body;
+		await Section.findByIdAndUpdate(
+			{ _id: sectionId },
+			{
+				$pull: {
+					subSection: subSectionId,
+				},
+			}
+		);
+		const subSection = await SubSection.findByIdAndDelete({
+			_id: subSectionId,
+		});
 
-		const { subSectionId } = req.params;
-		if (!subSectionId) {
-			return res.status(402).json({
-				success: false,
-				msg: "All fields are required",
-			});
+		if (!subSection) {
+			return res
+				.status(404)
+				.json({ success: false, message: "SubSection not found" });
 		}
 
-		await Section.findByIdAndDelete(subSectionId);
+		// find updated section and return it
+		const updatedSection = await Section.findById(sectionId).populate(
+			"subSection"
+		);
 
-		// TODO : Do we need to delete the entry from course schema ??
-
-		return res.status(200).json({
+		return res.json({
 			success: true,
-			msg: "subsection deleted successfully",
+			message: "SubSection deleted successfully",
+			data: updatedSection,
 		});
 	} catch (error) {
-		console.log(error);
+		console.error(error);
 		return res.status(500).json({
 			success: false,
-			msg: "Error in deleting subsection",
+			message: "An error occurred while deleting the SubSection",
 		});
 	}
 };
 
 // TODO : getAllSubSectionDetails
+
+// // TODO : idk this is right or wrong
+// exports.updateSubSection = async (req, res) => {
+// 	try {
+// 		//fetch data
+// 		//validate
+// 		//update data in Section model
+// 		//return response
+// 		const { title, timeDuration, description, subSectionId } = req.body;
+
+// 		const video = req.files.videoFile;
+
+// 		if (
+// 			!title ||
+// 			!subSectionId ||
+// 			!timeDuration ||
+// 			!description ||
+// 			!video
+// 		) {
+// 			return res.status(402).json({
+// 				success: false,
+// 				msg: "All fields are required",
+// 			});
+// 		}
+
+// 		const uploadDetails = await imageUploader(
+// 			video,
+// 			process.env.FOLDER_NAME
+// 		);
+// 		console.log("Upload details for videoUrl : ", uploadDetails);
+
+// 		const response = await SubSection.findByIdAndUpdate(subSectionId, {
+// 			title: title,
+// 			timeDuration: timeDuration,
+// 			description: description,
+// 			video: uploadDetails.secure_url,
+// 		});
+
+// 		return res.status(200).json({
+// 			success: true,
+// 			data: response,
+// 			msg: "sub section updated successfully",
+// 		});
+// 	} catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({
+// 			success: false,
+// 			msg: "Error in updating sub section",
+// 		});
+// 	}
+// };
+
+// // TODO : idk this is right or wrong
+// exports.deleteSection = async (req, res) => {
+// 	try {
+// 		//fetch id
+// 		//validate
+// 		//delete
+// 		//return
+
+// 		const { subSectionId } = req.params;
+// 		if (!subSectionId) {
+// 			return res.status(402).json({
+// 				success: false,
+// 				msg: "All fields are required",
+// 			});
+// 		}
+
+// 		await Section.findByIdAndDelete(subSectionId);
+
+// 		// TODO : Do we need to delete the entry from course schema ??
+
+// 		return res.status(200).json({
+// 			success: true,
+// 			msg: "subsection deleted successfully",
+// 		});
+// 	} catch (error) {
+// 		console.log(error);
+// 		return res.status(500).json({
+// 			success: false,
+// 			msg: "Error in deleting subsection",
+// 		});
+// 	}
+// };

@@ -1,6 +1,5 @@
 const Profile = require('../models/profile.models')
 const User = require('../models/user.models')
-const Profile = require('../models/profile.models')
 
 // in auth.controller while signup we entered null entries for all profile data , i.e.
 /*   const profileDetails = await Profile.create({

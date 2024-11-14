@@ -1,6 +1,6 @@
 // Import the required modules
 const express = require("express");
-const { authN, isInstructor } = require("../middlewares/auth.middlewares");
+const { authN, isInstructor, isAdmin, isStudent } = require("../middlewares/auth.middlewares");
 const { createCourse, getAllCourses, getCourseDetails } = require("../controllers/course.controllers");
 const { createSection, updateSection, deleteSection } = require("../controllers/section.controllers");
 const { updateSubSection,deleteSubSection, createSubSection} = require("../controllers/subsection.controllers");
