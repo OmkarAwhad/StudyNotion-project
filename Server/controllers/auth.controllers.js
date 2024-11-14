@@ -60,7 +60,7 @@ exports.signUp = async (req, res) => {
 		// get all things from model
 		// validate
 		// check if user already exists or not
-		// check if password and confirmPassword are the same
+		// check if password and oldPassword are the same
 		// find most recent OTP stored for the user
 		// validate OTP
 		// hash password
@@ -229,44 +229,40 @@ exports.login = async (req, res) => {
 exports.changePassword = async (req, res) => {
 	try {
 		//get data for req body
-		//get old, new and confirm password
-		//validation
+		//get userId for req.userExists
+		//get old, new password
+		//validation (if oldPassword entry and password in db are same or not)
+		//hash new password
 		//update in db
 		//send mail - password updated
 		//return res
-		const { email, newPassword, confirmPassword } = req.body;
+		const userId = req.userExists.id;
+		const userDetails = await User.findById(userId);
 
-		if (!email || !newPassword || !confirmPassword) {
+		const {  newPassword, oldPassword } = req.body;
+
+		if ( !newPassword || !oldPassword) {
 			return res.status(403).json({
 				success: false,
 				msg: "All fields are required",
 			});
 		}
 
-		if (newPassword !== confirmPassword) {
+		if (!await bcrypt.compare(oldPassword, userDetails.password)) {
 			return res.status(403).json({
 				success: false,
-				msg: "New Password and confirm password does not match",
+				msg: "Old password does not match",
 			});
 		}
 
-		const userExists = await User.findOne({ email });
-		if (!userExists) {
-			return res.status(400).json({
-				success: false,
-				msg: "User does not exists",
-			});
-		}
+		const hashedPass = await bcrypt.hash(newPassword,10);
 
-		const response = await User.findOneAndUpdate(
-			{ email: email },
-			{ password: newPassword }
-		);
+		const response = await User.findByIdAndUpdate({_id:userId},{ password : hashedPass },{new:true});
 
 		// mail sending
 		try {
 			const mailResp = await mailSender(
-				userExists.email,
+				response.email,
 				"Study Notion",
 				"Your Study Notion Password in Updated successfully"
 			);
