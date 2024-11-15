@@ -5,9 +5,9 @@ const router = express.Router();
 const { authN } = require('../middlewares/auth.middlewares')
 
 
-router.post('/sendOTP',sendOTP);
+router.post('/sendotp',sendOTP);
 router.post('/login', login);
-router.post('/signUp', signUp);
+router.post('/signup', signUp);
 router.post('/changePassword', authN, changePassword);
 
 router.post('/reset-password-token',resetPasswordToken)

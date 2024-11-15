@@ -76,7 +76,8 @@ exports.resetPassword = async (req, res) => {
 		//update in db
 		//return res
 
-		const { password, confirmPassword } = req.body;
+		const { password, confirmPassword,token } = req.body;
+		console.log("Req body se utha liya re")
 		if (!password || !confirmPassword) {
 			return res.status(401).json({
 				success: false,

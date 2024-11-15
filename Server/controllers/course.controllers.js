@@ -23,9 +23,15 @@ exports.createCourse = async (req, res) => {
 			whatYouWillLearn,
 			price,
 			category,
+			tag: _tag,
+			instructions: _instructions,
+			// status,
 		} = req.body;
 
 		const thumbNail = req.files.thumbNailImage;
+
+		const tag = JSON.parse(_tag);
+		const instructions = JSON.parse(_instructions);
 
 		if (
 			!courseName ||
@@ -33,6 +39,8 @@ exports.createCourse = async (req, res) => {
 			!whatYouWillLearn ||
 			!price ||
 			!category ||
+			!tag.length>0 ||
+			!instructions.length>0 ||
 			!thumbNail
 		) {
 			return res.status(402).json({
@@ -41,8 +49,12 @@ exports.createCourse = async (req, res) => {
 			});
 		}
 
+		// if (!status || status === undefined) {
+		// 	status = "Draft";
+		// }
+
 		const userId = req.userExists.id;
-		const instructorDetails = await User.findById({ userId });
+		const instructorDetails = await User.findById({ _id:userId });
 		console.log("Instructor Details : ", instructorDetails);
 
 		if (!instructorDetails) {
@@ -52,7 +64,7 @@ exports.createCourse = async (req, res) => {
 			});
 		}
 
-		const categoryDetails = await Category.findById({ category });
+		const categoryDetails = await Category.findById({ _id:category });
 		if (!categoryDetails) {
 			return res.status(402).json({
 				success: false,
@@ -73,6 +85,8 @@ exports.createCourse = async (req, res) => {
 			price,
 			thumbNail: thumbNailImage.secure_url,
 			category: categoryDetails._id,
+			tag,
+			instructions,
 		});
 
 		await User.findByIdAndUpdate(
@@ -142,18 +156,18 @@ exports.getCourseDetails = async (req, res) => {
 			});
 		}
 
-		const response = await Course.find({_id:courseId})
+		const response = await Course.find({ _id: courseId })
 			.populate({
-				path:"instructor",
-				populate:{
-					path:"additionalDetails",
-				}
+				path: "instructor",
+				populate: {
+					path: "additionalDetails",
+				},
 			})
 			.populate({
-				path:"courseContent",
-				populate:{
-					path:"subSection",
-				}
+				path: "courseContent",
+				populate: {
+					path: "subSection",
+				},
 			})
 			.populate("ratingsAndReviews")
 			.populate("category")
@@ -179,3 +193,5 @@ exports.getCourseDetails = async (req, res) => {
 		});
 	}
 };
+
+

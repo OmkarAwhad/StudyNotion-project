@@ -9,9 +9,31 @@ exports.authN = async(req,res,next) => {
           //verify token
           //next
 
-          const token = req.body.token || req.cookies.token || req.header("Authorisation").replace("Bearer","");
+
+          // console.log("Now i'm in authN middleware")
+          // console.log("Fetching token")
+          // const token = req.body.token || req.cookies.token || req.header("Authorization").replace("Bearer ","");
+          // console.log("Token : ",token)
+
+          let token;
+          // Check Authorization header first
+          const authHeader = req.headers.authorization;
+          if (req.cookies && req.cookies.userCookie) {
+               token = req.cookies.userCookie;
+               console.log("Token fetched from cookie")
+          }else if (authHeader && authHeader.startsWith('Bearer ')) {
+               token = authHeader.split(' ')[1];
+               console.log("Token fetched from header")
+          }
+          // Finally check body
+          else if (req.body && req.body.token) {
+               token = req.body.token;
+               console.log("Token fetched from body")
+          }
+          console.log("Token : ",token)
 
           if(!token){
+               console.error("Token not found in request");
                return res.status(401).json({
                     success:false,
                     msg:"Token Missing",
@@ -20,19 +42,21 @@ exports.authN = async(req,res,next) => {
 
           try {
                const payload = await jwt.verify(token, process.env.JWT_SECRET);
-               console.log("Token verifying response ", payload);
-
+               console.log("Token verified successfully:", payload);
                req.userExists = payload;
           } catch (error) {
+               console.error("Error during token verification:", error.message);  // Log the specific error message
                return res.status(401).json({
-                    success:false,
-                    msg:"Invalid Token",
-               })
+                    success: false,
+                    msg: "Invalid Token in authN",
+               });
           }
+          
           
           next();
 
      } catch (error) {
+          console.log("Error in verifying token")
           return res.status(500).json({
                success:false,
                msg:"Something went wrong, while verifying token",
