@@ -1,7 +1,7 @@
 // Import the required modules
 const express = require("express");
 const { authN, isInstructor, isAdmin, isStudent } = require("../middlewares/auth.middlewares");
-const { createCourse, getAllCourses, getCourseDetails, deleteCourse } = require("../controllers/course.controllers");
+const { createCourse, getAllCourses, getCourseDetails, deleteCourse, getFullCourseDetails, editCourse, getInstructorCourses } = require("../controllers/course.controllers");
 const { createSection, updateSection, deleteSection } = require("../controllers/section.controllers");
 const { updateSubSection,deleteSubSection, createSubSection} = require("../controllers/subsection.controllers");
 const { createCategory, showAllCategories, categoryPageDetails } = require("../controllers/category.controllers");
@@ -20,11 +20,10 @@ router.post("/deleteSubSection", authN, isInstructor, deleteSubSection);
 router.post("/createCourse", authN, isInstructor, createCourse);
 router.get("/getAllCourses", getAllCourses);
 router.post("/getCourseDetails", getCourseDetails);
-
-// router.delete("/deleteCourse", deleteCourse);
-// router.post("/getFullCourseDetails", authN, getFullCourseDetails);
-// router.post("/editCourse", authN, isInstructor, editCourse);
-// router.get("/getInstructorCourses", authN, isInstructor, getInstructorCourses);
+router.delete("/deleteCourse", deleteCourse);
+router.post("/getFullCourseDetails", authN, getFullCourseDetails);
+router.post("/editCourse", authN, isInstructor, editCourse);
+router.get("/getInstructorCourses", authN, isInstructor, getInstructorCourses);
 // router.post("/updateCourseProgress", authN, isStudent, updateCourseProgress);
 
 
